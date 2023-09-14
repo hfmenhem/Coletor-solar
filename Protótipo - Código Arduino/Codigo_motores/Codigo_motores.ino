@@ -6,8 +6,11 @@
 RTC_DS1307 RTC;
 
 #define FULLSTEP 4
-AccelStepper myStepperA(FULLSTEP, 11, 9, 10, 8);
-AccelStepper myStepperh(FULLSTEP, 7, 5, 6, 4);
+//AccelStepper myStepperA(FULLSTEP, 11, 9, 10, 8);
+//AccelStepper myStepperh(FULLSTEP, 7, 5, 6, 4);
+AccelStepper myStepperA(FULLSTEP, 8, 10, 9, 11);
+AccelStepper myStepperh(FULLSTEP, 4, 6, 5, 7);
+
 
 float rot;
 
@@ -31,6 +34,9 @@ float tRad;
 float h;
 float A;
 
+float h2;
+float a2;
+
 int h0;
 int a0;
 
@@ -38,8 +44,8 @@ int horaN;
 
 void setup() {
   //para calcular valores de azimute e altura
-  lon = (45 - 46.65) * 0.017453;
-  lat = (23.568) * 0.017453;
+  lon = (45 - 44.896) * 0.017453;
+  lat = (23.124) * 0.017453;
 
   Serial.begin(9600);
   Serial.println("");
@@ -70,28 +76,19 @@ void setup() {
     }
   }
   //motores de passo
-  myStepperA.setMaxSpeed(400.0);
-	myStepperA.setSpeed(400);
-  myStepperA.setAcceleration(50);
+  myStepperA.setMaxSpeed(200.0);
+  myStepperA.setSpeed(200);
+  myStepperA.setAcceleration(200);
   myStepperh.setMaxSpeed(200.0);
-	myStepperh.setSpeed(200);
-  myStepperh.setAcceleration(50);
+  myStepperh.setSpeed(200);
+  myStepperh.setAcceleration(200);
   rot = 2038*12/360;
 
-  while (digitalRead(limh) != 1){
-    myStepperh.move(100);
-    myStepperh.run();
-  }
-  myStepperh.stop();
-  h0 = myStepperh.currentPosition();
-
-  while (digitalRead(limA) != 1){
-    myStepperA.move(200);
-    myStepperA.run();
-  }
-  myStepperA.stop();
-  a0 = myStepperA.currentPosition();
-
+  pinMode(limh, INPUT);
+  pinMode(limA, INPUT);
+  
+  zero();
+  
   delay(10000);
 }
 
@@ -107,34 +104,37 @@ void loop() {
   segundo = now.second();
   if (hora != horaN){
     horaN = hora;
-    while (digitalRead(limh) != 1){
-      myStepperh.move(100);
-      myStepperh.run();
-    }
-    myStepperh.stop();
-    h0 = myStepperh.currentPosition();
-
-    while (digitalRead(limA) != 1){
-      myStepperA.move(100);
-      myStepperA.run();
-    }
-    myStepperA.stop();
-    a0 = myStepperA.currentPosition();
+    zero();
   }
+
+  //Salva valores anteriores
   
   //calcula A e h
   posicao();
 
+  Serial.print("A2:");
+  Serial.print(a2);
+  Serial.print("\t");
   Serial.print("A:");
   Serial.println(A);
+  
+  Serial.print("h2:");
+  Serial.print(h2);
+  Serial.print("\t");
   Serial.print("h:");
   Serial.println(h);
 
   //aponta o motor para o local certo
-  myStepperh.moveTo((1*h*rot) + h0 -(90*rot));
-  myStepperh.runToPosition();
-  myStepperA.moveTo((-1*A*rot) + a0);
-  myStepperA.runToPosition();
+  if(((h-h2)>=1)||((h-h2)<=-1)){
+    myStepperh.moveTo((1*h*rot) + h0 -(90*rot));
+    myStepperh.runToPosition();  
+    h2=h;
+  }
+  if(((A-a2)>=1)||((A-a2)<=-1)){
+    myStepperA.moveTo((-1*A*rot) + a0);
+    myStepperA.runToPosition();
+    a2=A;  
+  }
   delay(60000UL);
 }
 
@@ -217,7 +217,7 @@ void acertarHora(){
   segundo = Serial.parseInt();
   Serial.readString();
   Serial.println(segundo);
-    
+      
   RTC.adjust(DateTime(ano, mes, dia, hora, minuto, segundo));
   DateTime now = RTC.now(); 
   ano = now.year();
@@ -229,4 +229,30 @@ void acertarHora(){
   DateTime time = RTC.now();
   Serial.println(String("DateTime::TIMESTAMP_FULL:\t")+time.timestamp(DateTime::TIMESTAMP_FULL));
 
+} 
+
+void zero(){
+  while (digitalRead(limh) != 1){
+    myStepperh.move(rot*90);
+    while (digitalRead(limh) != 1 && myStepperh.distanceToGo() != 0){
+      myStepperh.run();
+    }
+  }
+  myStepperh.stop();
+  h0 = myStepperh.currentPosition();
+  myStepperh.move(h0);
+
+
+  while (digitalRead(limA) != 1){
+    myStepperA.move(rot*360);
+    while (digitalRead(limA) != 1 && myStepperA.distanceToGo() != 0){
+      myStepperA.run();
+    }
+  }
+  myStepperA.stop();
+  a0 = myStepperA.currentPosition();
+  myStepperA.move(a0);
+
+  a2=0;
+  h2=90;
 }

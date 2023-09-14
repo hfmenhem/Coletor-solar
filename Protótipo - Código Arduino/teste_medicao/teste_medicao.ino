@@ -29,14 +29,22 @@ void setup() {
   //para medir as placas
   controle.begin();
   experimental.begin();
-  
+
+    TfonteC_V = controle.getBusVoltage_V() + (controle.getShuntVoltage_mV() / 1000);
+  CorrenteC_mA = controle.getCurrent_mA();
+  PotenciaC_mW = controle.getPower_mW();
+
+  TfonteE_V = experimental.getBusVoltage_V() + (experimental.getShuntVoltage_mV() / 1000);
+  CorrenteE_mA = experimental.getCurrent_mA();
+  PotenciaE_mW = experimental.getPower_mW();
+
   //coisas para mostrar na serial
   Serial.begin(9600);
   Serial.println("");
   Serial.println("--------------");
 
   Serial.println("Teste dos sensores:");
-  
+
   Serial.println("");
   Serial.print("Ic (mA)");
   Serial.print("\t");
@@ -51,16 +59,7 @@ void setup() {
   Serial.print("Pe (mW)");
   Serial.print("\t");
   Serial.println("T (ms)");
-  
-  digitalWrite(PWM, LOW);
-  TfonteC_V = controle.getBusVoltage_V() + (controle.getShuntVoltage_mV() / 1000);
-  CorrenteC_mA = controle.getCurrent_mA();
-  PotenciaC_mW = controle.getPower_mW();
 
-  TfonteE_V = experimental.getBusVoltage_V() + (experimental.getShuntVoltage_mV() / 1000);
-  CorrenteE_mA = experimental.getCurrent_mA();
-  PotenciaE_mW = experimental.getPower_mW();
-  
   Serial.print(CorrenteC_mA);
   Serial.print("\t");
   Serial.print(TfonteC_V);
@@ -75,34 +74,8 @@ void setup() {
   Serial.print("\t");
   Serial.println(millis());
 
-  digitalWrite(PWM, HIGH);
-  delay(3000);
 
-  TfonteC_V = controle.getBusVoltage_V() + (controle.getShuntVoltage_mV() / 1000);
-  CorrenteC_mA = controle.getCurrent_mA();
-  PotenciaC_mW = controle.getPower_mW();
-
-  TfonteE_V = experimental.getBusVoltage_V() + (experimental.getShuntVoltage_mV() / 1000);
-  CorrenteE_mA = experimental.getCurrent_mA();
-  PotenciaE_mW = experimental.getPower_mW();
-  
-  Serial.print(CorrenteC_mA);
-  Serial.print("\t");
-  Serial.print(TfonteC_V);
-  Serial.print("\t");
-  Serial.print(PotenciaC_mW);
-  Serial.print("\t");
-  Serial.print(CorrenteE_mA);
-  Serial.print("\t");
-  Serial.print(TfonteE_V);
-  Serial.print("\t");
-  Serial.print(PotenciaE_mW);
-  Serial.print("\t");
-  Serial.println(millis());
-
-  digitalWrite(PWM, LOW);
-  
-  nomeAr = "coleta9.txt";
+  nomeAr = "teste.txt";
 
   Serial.println("");
   Serial.print("nome do arquivo: ");
@@ -147,44 +120,51 @@ void loop() {
   //para medir as placas
   digitalWrite(LED, HIGH);
   myFile = SD.open(nomeAr, FILE_WRITE);
-  Serial.print("coletando dados...");
   if (myFile) { // Se o Arquivo abrir:
-    for (int i = 0; i <= 255; i++) {
-      analogWrite(PWM, i);
-      TfonteC_V = controle.getBusVoltage_V() + (controle.getShuntVoltage_mV() / 1000);
-      CorrenteC_mA = controle.getCurrent_mA();
-      PotenciaC_mW = controle.getPower_mW();
+    analogWrite(PWM, 0);
+    TfonteC_V = controle.getBusVoltage_V() + (controle.getShuntVoltage_mV() / 1000);
+    CorrenteC_mA = controle.getCurrent_mA();
+    PotenciaC_mW = controle.getPower_mW();
 
-      TfonteE_V = experimental.getBusVoltage_V() + (experimental.getShuntVoltage_mV() / 1000);
-      CorrenteE_mA = experimental.getCurrent_mA();
-      PotenciaE_mW = experimental.getPower_mW();
+    TfonteE_V = experimental.getBusVoltage_V() + (experimental.getShuntVoltage_mV() / 1000);
+    CorrenteE_mA = experimental.getCurrent_mA();
+    PotenciaE_mW = experimental.getPower_mW();
 
-      myFile.print(CorrenteC_mA);
-      myFile.print("\t");
-      myFile.print(TfonteC_V);
-      myFile.print("\t");
-      myFile.print(PotenciaC_mW);
-      myFile.print("\t");
-      myFile.print(CorrenteE_mA);
-      myFile.print("\t");
-      myFile.print(TfonteE_V);
-      myFile.print("\t");
-      myFile.print(PotenciaE_mW);
-      myFile.print("\t");
-      myFile.println(millis());
+    myFile.print(CorrenteC_mA);
+    myFile.print("\t");
+    myFile.print(TfonteC_V);
+    myFile.print("\t");
+    myFile.print(PotenciaC_mW);
+    myFile.print("\t");
+    myFile.print(CorrenteE_mA);
+    myFile.print("\t");
+    myFile.print(TfonteE_V);
+    myFile.print("\t");
+    myFile.print(PotenciaE_mW);
+    myFile.print("\t");
+    myFile.println(millis());
 
-      delay(2);
-    }
     myFile.println("");
     myFile.println("");
     myFile.close();
-    Serial.println("Dados salvos com sucesso"); // Imprime na tela
+    Serial.print(CorrenteC_mA);
+    Serial.print("\t");
+    Serial.print(TfonteC_V);
+    Serial.print("\t");
+    Serial.print(PotenciaC_mW);
+    Serial.print("\t");
+    Serial.print(CorrenteE_mA);
+    Serial.print("\t");
+    Serial.print(TfonteE_V);
+    Serial.print("\t");
+    Serial.print(PotenciaE_mW);
+    Serial.print("\t");
+    Serial.println(millis());
+  
   }
   else {     // Se o Arquivo não abrir
     Serial.println("Erro ao Escrever no Arquivo .txt"); // Imprime na tela
   }
   digitalWrite(PWM, LOW);
   digitalWrite(LED, LOW);
-
-  delay (60000UL);
 }

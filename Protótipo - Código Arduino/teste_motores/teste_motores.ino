@@ -10,12 +10,12 @@ void setup() {
 
  Serial.begin(9600); 
   // put your setup code here, to run once:
-  myStepperA.setMaxSpeed(1000.0);
-  myStepperA.setSpeed(1000);
-  myStepperA.setAcceleration(50);
-  myStepperh.setMaxSpeed(1000.0);
-  myStepperh.setSpeed(1000);
-  myStepperh.setAcceleration(50);
+  myStepperA.setMaxSpeed(100.0);
+  myStepperA.setSpeed(100);
+  myStepperA.setAcceleration(10);
+  myStepperh.setMaxSpeed(100.0);
+  myStepperh.setSpeed(100);
+  myStepperh.setAcceleration(10);
 }
 
 void loop() {
@@ -61,6 +61,10 @@ void loop() {
     Serial.println(i);
     }
   }
+  if(valor==6){
+    myStepperA.move(24500);
+  }
+    
 
   myStepperh.runToPosition();
   myStepperA.runToPosition();
